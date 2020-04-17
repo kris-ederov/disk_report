@@ -43,16 +43,22 @@ def ScanFolder(path_main):
 
     dict_files = []
     for index, file in enumerate(list_files):
-        dict_files.append(tuple([file, list_sizes[index]]))
+        dict_files.append(tuple(['{:.50}'.format(file), list_sizes[index]]))
+    dict_files.sort(key = lambda item: item[1], reverse=True)
+
+    for index, item in enumerate(dict_files):
+        list_files[index] = item[0]
+        list_sizes[index] = item[1]
 
     # return dict_files
-    return sorted(dict_files, key = lambda item: item[1], reverse=True)
+    return list_files, list_sizes
 
-stest = r"C:\Users\krissay\Desktop\test"
-stest2 = r"D:\Downloads"
-stest3 = r"E:"
+if __name__ == "__main__":
+    stest = r"C:\Users\krissay\Desktop\test"
+    stest2 = r"D:\Downloads"
+    stest3 = r"E:"
 
-dict_files = ScanFolder(stest2)
-print("\n")
-for filename in dict_files:
-    print(filename[0] + " - " + FormatSize(filename[1]))
+    list_files, list_sizes = ScanFolder(stest2)
+    print("\n")
+    for file, size in zip(list_files, list_sizes):
+        print(file + " - " + FormatSize(size))
