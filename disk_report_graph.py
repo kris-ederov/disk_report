@@ -9,14 +9,14 @@ class GenWin:
 
         self.main_win = tkinter.Tk()
         self.main_win.title("Disk Reporter")
-        self.main_win.geometry("1400x600")
+        self.main_win.geometry("1200x600")
 
         self.button2 = tkinter.Button(master=self.main_win, text="Quit", command=quit)
         self.button2.pack(side=tkinter.BOTTOM)
 
         self.fig = pyplot.figure(figsize=(6, 6), dpi=85, frameon=True)
         self.ax = self.fig.add_axes([0.1,0,.8,1])
-        self.list_files, self.list_sizes = ScanFolder(self.folder_path)
+        self.list_files, self.list_sizes = ScanFolder(self.folder_path, True)
         self.list_files_formatted = []
         for index, label in enumerate(self.list_files):
             self.list_files_formatted.append(label + "\n" + FormatSize(self.list_sizes[index]))
@@ -40,7 +40,8 @@ class GenWin:
         self.ax.pie(testlist2, labels = testlist1, autopct='%1.1f%%')
         self.canvas.draw()
 
-stest = r"D:\Downloads"
-stest2 = r"C:\Users\krissay\Documents"
-
-MainFig = GenWin(stest)
+if __name__ == "__main__":
+    stest = r"D:\Downloads"
+    stest2 = r"C:\Users\krissay\Documents"
+    
+    MainFig = GenWin(stest2)
