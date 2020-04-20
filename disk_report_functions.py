@@ -38,11 +38,11 @@ def ScanFolder(path_main, limit_list_flag):
     #Build list of all files and folders in given path
     path_main = Path(path_main)
     list_files = os.listdir(path_main)
-    list_files_url = [ path_main / x for x in list_files ]
+    list_urls = [ path_main / x for x in list_files ]
 
     #Build a list of sizes for each file/folder
     list_sizes = []
-    for file_url in list_files_url:
+    for file_url in list_urls:
         if os.path.isfile(file_url):
             list_sizes.append(os.path.getsize(file_url))
         else:
@@ -51,7 +51,7 @@ def ScanFolder(path_main, limit_list_flag):
     #Sort items through a dictionnary
     dict_files = []
     for index, file in enumerate(list_files):
-        dict_files.append(tuple(['{:.50}'.format(file), list_sizes[index]]))
+        dict_files.append(tuple(['{:.50}'.format(file), list_sizes[index], list_urls[index]]))
     dict_files.sort(key = lambda item: item[1], reverse=True)
 
     #Filter out small items
@@ -59,24 +59,28 @@ def ScanFolder(path_main, limit_list_flag):
     count_size = 0
     sorted_list_files = []
     sorted_list_sizes = []
+    sorted_list_urls = []
     for item in dict_files:
         sorted_list_files.append(item[0])
         sorted_list_sizes.append(item[1])
+        sorted_list_urls.append(item[2])
         count_size += item[1]
         if total_size > 0:
             if limit_list_flag and count_size/total_size > .95 and len(sorted_list_files) < len(list_sizes):
                 sorted_list_files.append("_OTHER FILES_")
                 sorted_list_sizes.append(total_size - count_size)
+                sorted_list_urls.append("N/A")
                 break
 
-    return sorted_list_files, sorted_list_sizes
+    return sorted_list_files, sorted_list_sizes, sorted_list_urls
 
 if __name__ == "__main__":
     stest = r"D:\Downloads\Rick and Morty S4"
     stest2 = r"D:\Downloads"
     stest3 = r"E:"
 
-    list_files, list_sizes = ScanFolder(stest2, True)
+    list_files, list_sizes, list_urls = ScanFolder(stest2, True)
     print("\n")
-    for file, size in zip(list_files, list_sizes):
+    for file, size, url in zip(list_files, list_sizes, list_urls):
         print(file + " - " + FormatSize(size))
+        print(url)
