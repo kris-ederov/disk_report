@@ -1,47 +1,52 @@
 import tkinter, os
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from disk_report_functions import ScanFolder, FolderSize, FormatSize
 
-class GenWin:
+class GenGraph:
     def __init__(self, main_win, folder_path):
         self.main_win = main_win
         self.folder_path = folder_path
+        self.fig_init_flg = False
 
-        self.main_win.title("Disk Reporter")
-        self.main_win.geometry("1200x600")
-
-        self.button2 = tkinter.Button(master=self.main_win, text="Quit", command=quit)
-        self.button2.pack(side=tkinter.BOTTOM)
+        # self.main_win.title("Disk Reporter")
+        # self.main_win.geometry("1200x600")
 
         self.fig = pyplot.figure(figsize=(6, 6), dpi=85, frameon=True)
         self.figaxes = self.fig.add_axes([0.1,0,.8,1])
+
+        self.SetFigAxes(self.folder_path)
+
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.main_win)
+        # self.canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH)
+        self.canvas.get_tk_widget().pack()
+        self.canvas.draw()
+
+        # self.stestt = r"D:\Downloads\Rick and Morty S4"
+        # self.button3 = tkinter.Button(master=self.main_win, text="Test", command=lambda: self.SetFigAxes(self.stestt))
+        # self.button3.pack(side=tkinter.BOTTOM)
+
+    def SetFigAxes(self, folder_path):
+        self.folder_path = folder_path
+
+        # self.fig.clf()  --> To completely remove figure
+        self.figaxes.clear()  # --> To only clear axis data (i.e. replace with some other data)
+
         self.list_files, self.list_sizes, self.list_urls = ScanFolder(self.folder_path, True)
         self.list_files_formatted = []
         for index, label in enumerate(self.list_files):
             self.list_files_formatted.append(label + "\n" + FormatSize(self.list_sizes[index]))
+
         self.figaxes.pie(self.list_sizes, labels = self.list_files_formatted, autopct='%1.1f%%')
         # figaxes.axis('equal')
+        if self.fig_init_flg: self.canvas.draw()
+        self.fig_init_flg = True
 
-        self.button3 = tkinter.Button(master=self.main_win, text="Test", command=lambda: self.TestFig())
-        self.button3.pack(side=tkinter.BOTTOM)
-
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.main_win)
-        self.canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH)
-        self.canvas.draw()
-    
-    def TestFig(self):
-        # self.fig.clf()  --> To completely remove figure
-        self.figaxes.clear()  # --> To only clear axis data (i.e. replace with some other data)
-        testlist1 = ["aa", "bb", "cc"]
-        testlist2 = [1, 2, 3]
-        self.figaxes.pie(testlist2, labels = testlist1, autopct='%1.1f%%')
-        self.canvas.draw()
 
 if __name__ == "__main__":
     stest = r"D:\Downloads"
     stest2 = r"C:\Users\krissay\Documents"
     
     root = tkinter.Tk()
-    MainFig = GenWin(root, stest)
+    MainFig = GenGraph(root, stest)
     root.mainloop()
