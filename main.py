@@ -21,6 +21,7 @@ frame2.pack(side = tkinter.RIGHT)
 
 stest = r"D:\Downloads"
 stest2 = r"C:\Users\krissay\Documents"
+stest3 = r"E:"
 
 Graph = GenGraph(frame2, stest)
 Treeview = GenTreeview(frame1, stest, Graph)

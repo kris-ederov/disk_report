@@ -37,7 +37,8 @@ def ScanFolder(path_main, limit_list_flag):
 
     #Build list of all files and folders in given path
     path_main = Path(path_main)
-    list_files = os.listdir(path_main)
+    try: list_files = os.listdir(path_main)
+    except: return [], [], []
     list_urls = [ path_main / x for x in list_files ]
 
     #Build a list of sizes for each file/folder
@@ -75,11 +76,11 @@ def ScanFolder(path_main, limit_list_flag):
     return sorted_list_files, sorted_list_sizes, sorted_list_urls
 
 if __name__ == "__main__":
-    stest = r"D:\Downloads\Rick and Morty S4"
+    stest = r"C:\Users\krissay\Documents\My Music"
     stest2 = r"D:\Downloads"
     stest3 = r"E:"
 
-    list_files, list_sizes, list_urls = ScanFolder(stest2, True)
+    list_files, list_sizes, list_urls = ScanFolder(stest, False)
     print("\n")
     for file, size, url in zip(list_files, list_sizes, list_urls):
         print(file + " - " + FormatSize(size))
