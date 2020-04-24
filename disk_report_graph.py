@@ -12,7 +12,7 @@ class GenGraph:
         # self.main_win.title("Disk Reporter")
         # self.main_win.geometry("1200x600")
 
-        self.fig = pyplot.figure(figsize=(6, 6), dpi=85, frameon=True)
+        self.fig = pyplot.figure(figsize=(13, 6), dpi=80, frameon=True)
         self.figaxes = self.fig.add_axes([0.1,0,.8,1])
 
         self.SetFigAxes(self.folder_path)

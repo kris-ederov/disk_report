@@ -12,9 +12,6 @@ class GenTreeview():
         self.dict_folder_urls = {}
         self.graph_object = graph_object
 
-        # self.main_win.title("Treeview")
-        # self.main_win.geometry("450x600")
-
         self.scrollbar = tkinter.Scrollbar(self.main_win)
         self.scrollbar.pack(side = tkinter.RIGHT, fill = tkinter.Y)
 
@@ -24,10 +21,12 @@ class GenTreeview():
         self.tree.pack(side = tkinter.LEFT)
         self.scrollbar.config(command = self.tree.yview)
 
-        self.tree["columns"] = "size"
-        self.tree["height"] = "24"
+        self.tree["columns"] = "size", "empty"
+        self.tree["height"] = "23"
+        self.tree["selectmode"] = "browse"
         self.tree.column("#0", width=360, minwidth=270, stretch=tkinter.NO)
-        self.tree.column("size", width=80, minwidth=80, stretch=tkinter.NO)
+        self.tree.column("size", width=70, minwidth=70, stretch=tkinter.NO, anchor = tkinter.E)
+        self.tree.column("empty", width=10, minwidth=15)
 
         self.tree.heading("#0", text="File Name", anchor=tkinter.W)
         self.tree.heading("size", text="Size", anchor=tkinter.W)
