@@ -66,6 +66,12 @@ class GenTreeview():
         item = self.tree.selection()[0]
         if item in self.dict_folder_urls: self.graph_object.SetFigAxes(self.dict_folder_urls[item])
 
+    def NewLevel(self, folder_path):
+        self.folder_path = folder_path
+
+        self.tree.delete(self.tree.get_children())
+        self.GenLevel(self.folder_path, "")
+
 
 if __name__ == "__main__":
     stest = r"D:\Downloads"
