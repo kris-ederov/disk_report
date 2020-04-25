@@ -11,7 +11,10 @@ def FormatSize(file_bytes):
     while file_bytes > power:
         file_bytes /= power
         n += 1
-    if n > 0: return '{:0.2f}'.format(file_bytes) + power_labels[n]
+    if n > 0:
+        if file_bytes >= 100: return '{:0.0f}'.format(file_bytes) + power_labels[n]
+        if file_bytes >= 10: return '{:0.1f}'.format(file_bytes) + power_labels[n]
+        else: return '{:0.2f}'.format(file_bytes) + power_labels[n]
     else: return str(file_bytes) + power_labels[n]
 
 def FolderSize(folder_path):
@@ -23,7 +26,8 @@ def FolderSize(folder_path):
 
     folder_size = 0
     for root, list_folders, list_files in os.walk(folder_path):
-        for file_name in list_files: folder_size += os.path.getsize(os.path.join(root, file_name))
+        for file_name in list_files: 
+            folder_size += os.path.getsize(os.path.join(root, file_name))
 
     return folder_size
 
@@ -39,6 +43,7 @@ def ScanFolder(path_main, limit_list_flag):
     path_main = Path(path_main)
     try: list_files = os.listdir(path_main)
     except: return [], [], []
+    if not list_files: return ["_Empty_"], [0], ["N/A"]
     list_urls = [ path_main / x for x in list_files ]
 
     #Build a list of sizes for each file/folder
@@ -61,17 +66,30 @@ def ScanFolder(path_main, limit_list_flag):
     sorted_list_files = []
     sorted_list_sizes = []
     sorted_list_urls = []
+    # for item in dict_files:
+    #     sorted_list_files.append(item[0])
+    #     sorted_list_sizes.append(item[1])
+    #     sorted_list_urls.append(item[2])
+    #     count_size += item[1]
+    #     if total_size > 0:
+    #         if limit_list_flag and count_size/total_size > .95 and len(sorted_list_files) < len(list_sizes):
+    #             sorted_list_files.append("_REMAINING FILES_")
+    #             sorted_list_sizes.append(total_size - count_size)
+    #             sorted_list_urls.append("N/A")
+    #             break
+
+    # Combine all files less than 2% of the total size
     for item in dict_files:
+        if total_size > 0:
+            if limit_list_flag and item[1]/total_size < .025:
+                sorted_list_files.append("- REMAINING FILES -")
+                sorted_list_sizes.append(total_size - count_size)
+                sorted_list_urls.append("N/A")
+                break
         sorted_list_files.append(item[0])
         sorted_list_sizes.append(item[1])
         sorted_list_urls.append(item[2])
         count_size += item[1]
-        if total_size > 0:
-            if limit_list_flag and count_size/total_size > .95 and len(sorted_list_files) < len(list_sizes):
-                sorted_list_files.append("_OTHER FILES_")
-                sorted_list_sizes.append(total_size - count_size)
-                sorted_list_urls.append("N/A")
-                break
 
     return sorted_list_files, sorted_list_sizes, sorted_list_urls
 
