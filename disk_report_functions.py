@@ -27,7 +27,8 @@ def FolderSize(folder_path):
     folder_size = 0
     for root, list_folders, list_files in os.walk(folder_path):
         for file_name in list_files: 
-            folder_size += os.path.getsize(os.path.join(root, file_name))
+            try: folder_size += os.path.getsize(os.path.join(root, file_name))
+            except: print("Unable to read " + str(os.path.join(root, file_name)))
 
     return folder_size
 
@@ -66,17 +67,6 @@ def ScanFolder(path_main, limit_list_flag):
     sorted_list_files = []
     sorted_list_sizes = []
     sorted_list_urls = []
-    # for item in dict_files:
-    #     sorted_list_files.append(item[0])
-    #     sorted_list_sizes.append(item[1])
-    #     sorted_list_urls.append(item[2])
-    #     count_size += item[1]
-    #     if total_size > 0:
-    #         if limit_list_flag and count_size/total_size > .95 and len(sorted_list_files) < len(list_sizes):
-    #             sorted_list_files.append("_REMAINING FILES_")
-    #             sorted_list_sizes.append(total_size - count_size)
-    #             sorted_list_urls.append("N/A")
-    #             break
 
     # Combine all files less than 2% of the total size
     for item in dict_files:

@@ -50,7 +50,7 @@ def GenDiskReport(main_win, disk_path):
     quit_button = tkinter.Button(frametop, text = "Quit", command = quit)
     quit_button.pack(side = tkinter.RIGHT)
 
-    LabelDesc = tkinter.Label(framebot, text = "Double click on folder for preview in chart")
+    LabelDesc = tkinter.Label(framebot, text = "Click on folder for preview in chart; Double click to open in explorer")
     LabelDesc.pack(side = tkinter.LEFT)
 
 
@@ -60,6 +60,6 @@ stest3 = r"E:"
 
 window = tkinter.Tk()
 
-GenDiskReport(window, stest2)
+GenDiskReport(window, stest)
 
 window.mainloop()
