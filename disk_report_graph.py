@@ -9,9 +9,6 @@ class GenGraph:
         self.folder_path = folder_path
         self.fig_init_flg = False
 
-        # self.main_win.title("Disk Reporter")
-        # self.main_win.geometry("1200x600")
-
         self.fig = pyplot.figure(figsize=(13, 6), dpi=80, frameon=True)
         self.figaxes = self.fig.add_axes([0.1,0,.8,1])
 
@@ -21,10 +18,6 @@ class GenGraph:
         # self.canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH)
         self.canvas.get_tk_widget().pack()
         self.canvas.draw()
-
-        # self.stestt = r"D:\Downloads\Rick and Morty S4"
-        # self.button3 = tkinter.Button(master=self.main_win, text="Test", command=lambda: self.SetFigAxes(self.stestt))
-        # self.button3.pack(side=tkinter.BOTTOM)
 
     def SetFigAxes(self, folder_path):
         self.folder_path = folder_path
@@ -38,7 +31,7 @@ class GenGraph:
             self.list_files_formatted.append(label + "\n" + FormatSize(self.list_sizes[index]))
 
         self.figaxes.pie(self.list_sizes, labels = self.list_files_formatted, autopct='%1.1f%%')
-        # figaxes.axis('equal')
+        # self.figaxes.axis('equal')
         if self.fig_init_flg: self.canvas.draw()
         self.fig_init_flg = True
 
