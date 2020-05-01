@@ -1,12 +1,12 @@
 import tkinter, os
 from tkinter import ttk
-from disk_report_functions import ScanFolder, FolderSize, FormatSize
-from disk_report_graph import GenGraph
+from disk_report_functions import FormatSize, FilesData
 from PIL import Image, ImageTk
 
 class GenTreeview():
-    def __init__(self, main_win, folder_path, graph_object):
+    def __init__(self, main_win, RootFolder, folder_path, graph_object):
         self.main_win = main_win
+        self.RootFolder = RootFolder
         self.folder_path = folder_path
         self.item_count = 0
         self.dict_folder_urls = {}
@@ -15,7 +15,7 @@ class GenTreeview():
         self.scrollbar = tkinter.Scrollbar(self.main_win)
         self.scrollbar.pack(side = tkinter.RIGHT, fill = tkinter.Y)
 
-        self.tree = tkinter.ttk.Treeview(self.main_win)
+        self.tree = ttk.Treeview(self.main_win)
         self.tree["yscrollcommand"] = self.scrollbar.set
         
         self.tree.pack(side = tkinter.LEFT)
@@ -34,13 +34,15 @@ class GenTreeview():
 
         self.folder_icon = ImageTk.PhotoImage(Image.open("icons\\folder.png"))
         self.file_icon = ImageTk.PhotoImage(Image.open("icons\\file.png"))
+        
         self.GenLevel(self.folder_path, "")
 
     # Generate main level of tree
     def GenLevel(self, folder_path, parent_item):
         if parent_item == "":
-            filesize = FormatSize(FolderSize(folder_path))
+            filesize = FormatSize(self.RootFolder.MainFolderSize())
             root_path, root_name = os.path.split(folder_path)
+            if not root_name: root_name = folder_path
             filename = root_name + " (Root)"
 
             # Generate main level
@@ -53,7 +55,7 @@ class GenTreeview():
             parent_item = self.sub_folder_item
 
         # Generate folder sub-levels
-        list_files, list_sizes, list_urls = ScanFolder(folder_path, False)
+        list_files, list_sizes, list_urls = self.RootFolder.FolderContents(folder_path, False, False)
 
         for index, filename in enumerate(list_files):
             filesize = FormatSize(list_sizes[index])
@@ -82,13 +84,15 @@ class GenTreeview():
             callback = lambda event, arg=url: self.on_2click(event, arg))
 
     def on_1click(self, event, path):
-        self.graph_object.SetFigAxes(path)
+        list_files, list_sizes, list_urls = self.RootFolder.FolderContents(path, True, False)
+        self.graph_object.SetFigAxes(list_files, list_sizes)
     
     def on_2click(self, event, path):
         os.startfile(path)
 
-    def NewLevel(self, folder_path):
+    def NewLevel(self, RootFolder, folder_path):
         self.folder_path = folder_path
+        self.RootFolder = RootFolder
 
         self.tree.delete(self.tree.get_children())
         self.GenLevel(self.folder_path, "")
@@ -100,6 +104,8 @@ if __name__ == "__main__":
 
     root = tkinter.Tk()
 
-    List_treeview = GenTreeview(root, stest, "")
+    RootFolder = FilesData(stest)
+
+    List_treeview = GenTreeview(root, RootFolder, stest, "")
 
     root.mainloop()

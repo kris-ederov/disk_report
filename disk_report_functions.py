@@ -17,79 +17,118 @@ def FormatSize(file_bytes):
         else: return '{:0.2f}'.format(file_bytes) + power_labels[n]
     else: return str(file_bytes) + power_labels[n]
 
-def FolderSize(folder_path):
-    # Input: folder path
-    # Output: folder size in bytes
+class FilesData:
+    # Data structure: [file index, file url, size, list with file indices contained in folder]
+    def __init__(self, path_main):
+        self.path_main = Path(path_main)
+        self.list_files = []
+        self.files_count = 0
 
-    #Exit if given path is not a folder
-    if os.path.isfile(folder_path): return "FolderSize error - not a folder"
+        self.list_files.append([self.files_count, self.path_main, -1, []])
+        self.files_count += 1
+        self.list_files[0][2], self.list_files[0][3] = self.ScanFolder(self.path_main)
 
-    folder_size = 0
-    for root, list_folders, list_files in os.walk(folder_path):
-        for file_name in list_files: 
-            try: folder_size += os.path.getsize(os.path.join(root, file_name))
-            except: print("Unable to read " + str(os.path.join(root, file_name)))
+    def ScanFolder(self, cur_path):
+        cur_path = Path(cur_path)
+        #Generate list of files for current dir
+        folder_contents_temp = []
+        try: temp_list = os.listdir(cur_path)
+        except: return 0, folder_contents_temp
 
-    return folder_size
+        cur_folder_size = 0
 
-def ScanFolder(path_main, limit_list_flag):
-    # Input: folder url, boolean controlling if small sizes will be omitted
-    # Return: list with tuples of each files/folder names and its size
+        # Go through each item in the list
+        for item in temp_list:
+            item = cur_path / item
 
-    # Exit if given path is not a folder
-    if os.path.isfile(path_main): return "ScanFolder error - not a folder"
-    if type(limit_list_flag) is not bool: return "ScanFolder error - limit_list_flag needs to be a bool"
+            if os.path.isfile(item):
+                item_size = os.path.getsize(item)
+                self.list_files.append([self.files_count, item, item_size])
+                cur_folder_size += item_size
+            else:
+                self.list_files.append([self.files_count, item, -1, []])
 
-    #Build list of all files and folders in given path
-    path_main = Path(path_main)
-    try: list_files = os.listdir(path_main)
-    except: return [], [], []
-    if not list_files: return ["_Empty_"], [0], ["N/A"]
-    list_urls = [ path_main / x for x in list_files ]
+            folder_contents_temp.append(self.files_count)
 
-    #Build a list of sizes for each file/folder
-    list_sizes = []
-    for file_url in list_urls:
-        if os.path.isfile(file_url):
-            list_sizes.append(os.path.getsize(file_url))
-        else:
-            list_sizes.append(FolderSize(file_url))
+            # temp_index, temp_size and cur_folder_size used to sum folder size
+            temp_index = self.files_count
 
-    #Sort items through a dictionnary
-    dict_files = []
-    for index, file in enumerate(list_files):
-        dict_files.append(tuple(['{:.50}'.format(file), list_sizes[index], list_urls[index]]))
-    dict_files.sort(key = lambda item: item[1], reverse=True)
+            self.files_count += 1
 
-    #Filter out small items
-    total_size = sum(list_sizes)
-    count_size = 0
-    sorted_list_files = []
-    sorted_list_sizes = []
-    sorted_list_urls = []
+            if os.path.isdir(item):
+                temp_size, folder_contents_sum = self.ScanFolder(item)
+                cur_folder_size += temp_size
+                self.list_files[temp_index][2] = temp_size
+                self.list_files[temp_index][3] = folder_contents_sum
+        
+        return cur_folder_size, folder_contents_temp
 
-    # Combine all files less than 2% of the total size
-    for item in dict_files:
-        if total_size > 0:
-            if limit_list_flag and item[1]/total_size < .025:
-                sorted_list_files.append("- REMAINING FILES -")
-                sorted_list_sizes.append(total_size - count_size)
-                sorted_list_urls.append("N/A")
-                break
-        sorted_list_files.append(item[0])
-        sorted_list_sizes.append(item[1])
-        sorted_list_urls.append(item[2])
-        count_size += item[1]
+    def MainFolderSize(self):
+        return self.list_files[0][2]
 
-    return sorted_list_files, sorted_list_sizes, sorted_list_urls
+    def PrintAllContents(self):
+        for item in self.list_files: print(item)
+
+    def FolderContents(self, path_folder, limit_list_flag, limit_filename_flg):
+        path_folder = Path(path_folder)
+        # Returns 2 lists: All folder contents and sizes
+        for item in self.list_files:
+            if path_folder == item[1]:
+                index_path_folder = item[0]
+                list_urls = [str(self.list_files[x][1]) for x in self.list_files[index_path_folder][3]]
+                list_sizes = [self.list_files[x][2] for x in self.list_files[index_path_folder][3]]
+
+                list_urls, list_sizes = self.SortFiles(list_urls, list_sizes, limit_list_flag)
+                
+                if limit_filename_flg: list_filenames = ['{:.50}'.format(os.path.basename(x)) for x in list_urls]
+                else: list_filenames = [os.path.basename(x) for x in list_urls]
+
+                return list_filenames, list_sizes, list_urls
+
+        return ["not found"], [0], ["N/A"]
+
+    def SortFiles(self, list_items, list_sizes, limit_list_flag):
+        #Sort items through a dictionnary
+        dict_files = []
+
+        for index, file in enumerate(list_items):
+            # dict_files.append(tuple(['{:.50}'.format(file), list_sizes[index]]))
+            dict_files.append(tuple([file, list_sizes[index]]))
+        dict_files.sort(key = lambda item: item[1], reverse=True)
+
+        #Filter out small items
+        total_size = sum(list_sizes)
+        count_size = 0
+        sorted_list_items = []
+        sorted_list_sizes = []
+
+        # Combine all files less than 2% of the total size
+        for item in dict_files:
+            if total_size > 0:
+                if limit_list_flag and item[1]/total_size < .025:
+                    sorted_list_items.append("- REMAINING FILES -")
+                    sorted_list_sizes.append(total_size - count_size)
+                    break
+            sorted_list_items.append(item[0])
+            sorted_list_sizes.append(item[1])
+            count_size += item[1]
+
+        return sorted_list_items, sorted_list_sizes
 
 if __name__ == "__main__":
     stest = r"C:\Users\krissay\Documents\My Music"
     stest2 = r"D:\Downloads"
-    stest3 = r"E:"
+    stest3 = r"E:\Google Drive"
 
-    list_files, list_sizes, list_urls = ScanFolder(stest, False)
-    print("\n")
-    for file, size, url in zip(list_files, list_sizes, list_urls):
-        print(file + " - " + FormatSize(size))
-        print(url)
+    # list_files, list_sizes, list_urls = ScanFolder(stest, False)
+    # print("\n")
+    # for file, size, url in zip(list_files, list_sizes, list_urls):
+    #     print(file + " - " + FormatSize(size))
+    #     print(url)
+
+    RootFolder = FilesData(stest2)
+    list_filenames, list_sizes, list_urls = RootFolder.FolderContents(stest2, False, False)
+
+    for index, item in enumerate(list_filenames):
+        print(item + " - " + FormatSize(list_sizes[index]))
+        print(list_urls[index])

@@ -1,18 +1,18 @@
 import tkinter, os, shutil
-# from tkinter import ttk, filedialog
-from disk_report_functions import ScanFolder, FolderSize, FormatSize
+from disk_report_functions import FormatSize, FilesData
 from disk_report_tree import GenTreeview
 from disk_report_graph import GenGraph
 
+def CreateFrame(frame_parent, frame_height, frame_width, frame_side):
+    frame = tkinter.Frame(frame_parent)
+    if frame_height != 0: frame.configure(height = frame_height)
+    if frame_width != 0: frame.configure(width = frame_width)
+    frame.pack(side = frame_side)
+    if frame_height != 0: frame.pack_propagate(0)
+    return frame
+
 def SetPathLabelText(Label_text, text):
     Label_text.set("  Contents of folder:  " + str(text))
-
-def OpenFolder(Treeview, Graph, LabelPath_text, LabelDrive_text, LabelSpaceUsed_text, used_percent):
-    folder_path = tkinter.filedialog.askdirectory()
-    Treeview.NewLevel(folder_path)
-    Graph.SetFigAxes(folder_path)
-    SetPathLabelText(LabelPath_text, folder_path)
-    SetDiskLabels(LabelDrive_text, LabelSpaceUsed_text, used_percent, folder_path)
     
 def SetDiskLabels(LabelDrive_text, LabelSpaceUsed_text, used_percent, disk_path):
     drive_letter, temp = os.path.splitdrive(disk_path)
@@ -22,55 +22,57 @@ def SetDiskLabels(LabelDrive_text, LabelSpaceUsed_text, used_percent, disk_path)
     LabelDrive_text.set("Drive " + drive_letter)
     LabelSpaceUsed_text.set(FormatSize(free) + " free of " + FormatSize(total))
 
+def OpenFolder(RootFolder, Treeview, Graph, LabelPath_text, LabelDrive_text, LabelSpaceUsed_text, used_percent):
+    folder_path = tkinter.filedialog.askdirectory()
+
+    del RootFolder
+    RootFolder = FilesData(folder_path)
+    list_files, list_sizes, list_urls = RootFolder.FolderContents(folder_path, True, True)
+
+    Treeview.NewLevel(RootFolder, folder_path)
+    Graph.SetFigAxes(list_files, list_sizes)
+
+    SetPathLabelText(LabelPath_text, folder_path)
+    SetDiskLabels(LabelDrive_text, LabelSpaceUsed_text, used_percent, folder_path)
+
 def GenDiskReport(main_win, disk_path):
     LabelPath_text = tkinter.StringVar()
-    SetPathLabelText(LabelPath_text, disk_path)
     LabelDrive_text = tkinter.StringVar()
     LabelSpaceUsed_text = tkinter.StringVar()
     used_percent = tkinter.DoubleVar()
 
     main_win.title("Disk Reporter v0.1")
+    frametop  = CreateFrame(main_win, 40, 1460, tkinter.TOP)
+    framebot  = CreateFrame(main_win, 80, 1460, tkinter.BOTTOM)
+    framemid  = CreateFrame(main_win, 0, 0, tkinter.BOTTOM)
+    framemid1 = CreateFrame(framemid, 0, 0, tkinter.LEFT)
+    framemid2 = CreateFrame(framemid, 0, 0, tkinter.RIGHT)
+    framebot1 = CreateFrame(framebot, 80, 360, tkinter.LEFT)
+    framebot2 = CreateFrame(framebot, 80, 600, tkinter.LEFT)
 
-    frametop = tkinter.Frame(main_win, height = "40", width = "1460")
-    frametop.pack(side = tkinter.TOP)
-    frametop.pack_propagate(0)
+    # Table d'hôte
+    RootFolder = FilesData(disk_path)
+    list_files, list_sizes, list_urls = RootFolder.FolderContents(disk_path, True, True)
 
-    framebot = tkinter.Frame(main_win, height = "80", width = "1460")
-    framebot.pack(side = tkinter.BOTTOM)
-    framebot.pack_propagate(0)
-    
-    framemid = tkinter.Frame(main_win)
-    framemid.pack(side = tkinter.BOTTOM)
+    Graph = GenGraph(framemid2, list_files, list_sizes)
+    Treeview = GenTreeview(framemid1, RootFolder, disk_path, Graph)
 
-    framemid1 = tkinter.Frame(framemid)
-    framemid1.pack(side = tkinter.LEFT)
-    
-    framemid2 = tkinter.Frame(framemid)
-    framemid2.pack(side = tkinter.RIGHT)
-
-    framebot1 = tkinter.Frame(framebot, height = "80", width = "360")
-    framebot1.pack(side = tkinter.LEFT)
-    framebot1.pack_propagate(0)
-
-    framebot2 = tkinter.Frame(framebot, height = "80", width = "600")
-    framebot2.pack(side = tkinter.LEFT)
-    framebot2.pack_propagate(0)
-
-    Graph = GenGraph(framemid2, disk_path)
-    Treeview = GenTreeview(framemid1, disk_path, Graph)
-
-    LabelPath = tkinter.Label(frametop, textvariable = LabelPath_text)
-
+    # Top frame widgets
     global open_icon
     open_icon = tkinter.PhotoImage(file = "icons\\open.png")
+
     open_button = tkinter.Button(frametop, text = " Select folder ", image = open_icon, compound = tkinter.LEFT, 
-        command = lambda: OpenFolder(Treeview, Graph, LabelPath_text, LabelDrive_text, LabelSpaceUsed_text, used_percent))
+        command = lambda: OpenFolder(RootFolder, Treeview, Graph, LabelPath_text, LabelDrive_text, LabelSpaceUsed_text, used_percent))
     open_button.pack(side = tkinter.LEFT)
+
+    SetPathLabelText(LabelPath_text, disk_path)
+    LabelPath = tkinter.Label(frametop, textvariable = LabelPath_text)
     LabelPath.pack(side = tkinter.LEFT)
 
     quit_button = tkinter.Button(frametop, text = "Quit", command = quit)
     quit_button.pack(side = tkinter.RIGHT)
 
+    # Treeview comment
     LabelDesc = tkinter.Label(framebot1, text = "Click on folder for preview in chart; Double click to open in explorer")
     LabelDesc.pack(side = tkinter.TOP)
 
