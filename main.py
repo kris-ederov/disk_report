@@ -29,7 +29,7 @@ def OpenFolder(RootFolder, Treeview, Graph, LabelPath_text, LabelDrive_text, Lab
     RootFolder = FilesData(folder_path)
     list_files, list_sizes, list_urls = RootFolder.FolderContents(folder_path, True, True)
 
-    Treeview.NewLevel(RootFolder, folder_path)
+    Treeview.NewTree(RootFolder)
     Graph.SetFigAxes(list_files, list_sizes)
 
     SetPathLabelText(LabelPath_text, folder_path)
@@ -55,7 +55,7 @@ def GenDiskReport(main_win, disk_path):
     list_files, list_sizes, list_urls = RootFolder.FolderContents(disk_path, True, True)
 
     Graph = GenGraph(framemid2, list_files, list_sizes)
-    Treeview = GenTreeview(framemid1, RootFolder, disk_path, Graph)
+    Treeview = GenTreeview(framemid1, RootFolder, Graph)
 
     # Top frame widgets
     global open_icon
@@ -88,9 +88,17 @@ def GenDiskReport(main_win, disk_path):
     LabelSpaceUsed = tkinter.Label(framebot2, textvariable = LabelSpaceUsed_text)
     LabelSpaceUsed.pack(side = tkinter.TOP)
 
+    # Needed to close window properly when 'X' is pressed
+    main_win.protocol("WM_DELETE_WINDOW", lambda item1 = Graph, item2 = main_win: CloseWin(item1, item2))
+
+def CloseWin(item1, item2):
+    item1.CloseFigure()
+    item2.destroy()
+
 stest = r"D:\Downloads"
 stest2 = r"C:\Users\krissay\Documents"
 stest3 = r"E:"
+stest4 = "C:\\"
 
 window = tkinter.Tk()
 

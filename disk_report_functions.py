@@ -2,8 +2,7 @@ import os
 from pathlib import Path
 
 def FormatSize(file_bytes):
-    # Input: # of bytes
-    # Output: # converted to KB/MB/GB with suffix
+    """Format integer bytes to KB/MB/GB"""
     power = 2**10
     n = 0
     power_labels = [' B', ' KB', ' MB', ' GB', ' TB']
@@ -14,11 +13,11 @@ def FormatSize(file_bytes):
     if n > 0:
         if file_bytes >= 100: return '{:0.0f}'.format(file_bytes) + power_labels[n]
         if file_bytes >= 10: return '{:0.1f}'.format(file_bytes) + power_labels[n]
-        else: return '{:0.2f}'.format(file_bytes) + power_labels[n]
+        else: return '{:0.1f}'.format(file_bytes) + power_labels[n]
     else: return str(file_bytes) + power_labels[n]
 
 class FilesData:
-    # Data structure: [file index, file url, size, list with file indices contained in folder]
+    """ Data structure: [file index, file url, size, list with file indices contained in folder] """
     def __init__(self, path_main):
         self.path_main = Path(path_main)
         self.list_files = []
@@ -63,6 +62,9 @@ class FilesData:
         
         return cur_folder_size, folder_contents_temp
 
+    def MainFolderPath(self):
+        return self.list_files[0][1]
+
     def MainFolderSize(self):
         return self.list_files[0][2]
 
@@ -70,6 +72,7 @@ class FilesData:
         for item in self.list_files: print(item)
 
     def FolderContents(self, path_folder, limit_list_flag, limit_filename_flg):
+        if not path_folder: path_folder = self.MainFolderPath()
         path_folder = Path(path_folder)
         # Returns 2 lists: All folder contents and sizes
         for item in self.list_files:
@@ -116,18 +119,13 @@ class FilesData:
         return sorted_list_items, sorted_list_sizes
 
 if __name__ == "__main__":
-    stest = r"C:\Users\krissay\Documents\My Music"
+    stest = r"C:\Users\krissay\Documents"
     stest2 = r"D:\Downloads"
     stest3 = r"E:\Google Drive"
+    stest4 = "C:\\"
 
-    # list_files, list_sizes, list_urls = ScanFolder(stest, False)
-    # print("\n")
-    # for file, size, url in zip(list_files, list_sizes, list_urls):
-    #     print(file + " - " + FormatSize(size))
-    #     print(url)
-
-    RootFolder = FilesData(stest2)
-    list_filenames, list_sizes, list_urls = RootFolder.FolderContents(stest2, False, False)
+    RootFolder = FilesData(stest4)
+    list_filenames, list_sizes, list_urls = RootFolder.FolderContents("", False, False)
 
     for index, item in enumerate(list_filenames):
         print(item + " - " + FormatSize(list_sizes[index]))

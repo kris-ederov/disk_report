@@ -4,12 +4,17 @@ from disk_report_functions import FormatSize, FilesData
 from PIL import Image, ImageTk
 
 class GenTreeview():
-    def __init__(self, main_win, RootFolder, folder_path, graph_object):
+    def NewTree(self, RootFolder):
+        self.RootFolder = RootFolder
+        self.root_path = RootFolder.MainFolderPath()
+
+        self.tree.delete(self.tree.get_children())
+        self.GenLevel(self.root_path, "")
+
+    def __init__(self, main_win, RootFolder, graph_object):
         self.main_win = main_win
         self.RootFolder = RootFolder
-        self.folder_path = folder_path
-        self.item_count = 0
-        self.dict_folder_urls = {}
+        self.root_path = self.RootFolder.MainFolderPath()
         self.graph_object = graph_object
 
         self.scrollbar = tkinter.Scrollbar(self.main_win)
@@ -21,7 +26,7 @@ class GenTreeview():
         self.tree.pack(side = tkinter.LEFT)
         self.scrollbar.config(command = self.tree.yview)
 
-        self.tree["columns"] = "size", "empty"
+        self.tree["columns"] = ["size", "empty"]
         self.tree["height"] = "23"
         self.tree["selectmode"] = "browse"
         
@@ -35,47 +40,47 @@ class GenTreeview():
         self.folder_icon = ImageTk.PhotoImage(Image.open("icons\\folder.png"))
         self.file_icon = ImageTk.PhotoImage(Image.open("icons\\file.png"))
         
-        self.GenLevel(self.folder_path, "")
+        self.GenLevel(self.root_path, "")
 
     # Generate main level of tree
     def GenLevel(self, folder_path, parent_item):
         if parent_item == "":
             filesize = FormatSize(self.RootFolder.MainFolderSize())
-            root_path, root_name = os.path.split(folder_path)
+            root_name = os.path.basename(folder_path)
             if not root_name: root_name = folder_path
-            filename = root_name + " (Root)"
+            filename = str(root_name) + " (Root)"
 
             # Generate main level
-            self.sub_folder_item = self.tree.insert(parent_item, "end", "", text = filename, values = (filesize,), 
-                open = True, image = self.folder_icon, tags = (folder_path,))
-
-            # Bind clicks to item
-            self.item_bind(self.tree, folder_path)
-
-            parent_item = self.sub_folder_item
+            parent_item = self.tree_insert(parent_item, filename, filesize, True, folder_path)
 
         # Generate folder sub-levels
         list_files, list_sizes, list_urls = self.RootFolder.FolderContents(folder_path, False, False)
 
         for index, filename in enumerate(list_files):
             filesize = FormatSize(list_sizes[index])
-            self.sub_folder_item = self.tree.insert(parent_item, "end", "", text = filename, values = (filesize,), 
-                open = False, tags = (list_urls[index],))
+            self.sub_item = self.tree_insert(parent_item, filename, filesize, False, list_urls[index])
 
             if os.path.isdir(list_urls[index]):
-                # Bind clicks to item
-                self.item_bind(self.tree, list_urls[index])
-
-                # Set folder icon
-                self.tree.item(self.sub_folder_item, image = self.folder_icon)
-
                 # Generate folder sub-level
-                self.GenLevel(list_urls[index], self.sub_folder_item)
+                self.GenLevel(list_urls[index], self.sub_item)
             else:
                 # Set file icon
-                self.tree.item(self.sub_folder_item, image = self.file_icon)
+                self.tree.item(self.sub_item, image = self.file_icon)
 
-    def item_bind(self, tree, url):
+            if index > 20:
+                self.tree.insert(parent_item, "end", "", text = "...")
+                break
+
+    def tree_insert(self, parent_item, filename, filesize, open_flg, tags_arg):
+        item = self.tree.insert(parent_item, "end", "", text = filename, values = (filesize,),
+            open = open_flg, image = self.folder_icon, tags = (tags_arg,))
+
+        # Bind clicks to item based on tag
+        if os.path.isdir(tags_arg): self.item_bind(tags_arg)
+
+        return item
+
+    def item_bind(self, url):
         if self.graph_object is not "":
             self.tree.tag_bind(url, sequence = '<ButtonPress-1>',
                 callback = lambda event, arg=url: self.on_1click(event, arg))
@@ -90,13 +95,6 @@ class GenTreeview():
     def on_2click(self, event, path):
         os.startfile(path)
 
-    def NewLevel(self, RootFolder, folder_path):
-        self.folder_path = folder_path
-        self.RootFolder = RootFolder
-
-        self.tree.delete(self.tree.get_children())
-        self.GenLevel(self.folder_path, "")
-
 
 if __name__ == "__main__":
     stest = r"D:\Downloads"
@@ -106,6 +104,6 @@ if __name__ == "__main__":
 
     RootFolder = FilesData(stest)
 
-    List_treeview = GenTreeview(root, RootFolder, stest, "")
+    List_treeview = GenTreeview(root, RootFolder, "")
 
     root.mainloop()

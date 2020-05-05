@@ -1,4 +1,4 @@
-import tkinter
+import tkinter, os
 from matplotlib import pyplot
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from disk_report_functions import FormatSize, FilesData
@@ -21,14 +21,6 @@ class GenGraph:
         self.canvas.get_tk_widget().pack()
         self.canvas.draw()
 
-    # def SetNewPath(self, folder_path):
-    #     self.folder_path = folder_path
-
-    #     RootFolder = FilesData(self.folder_path)
-    #     self.list_files, self.list_sizes, self.list_urls = RootFolder.FolderContents(self.folder_path, True, True)
-
-    #     self.SetFigAxes(self.list_files, self.list_sizes)
-
     def SetFigAxes(self, list_files, list_sizes):
         self.list_files = list_files
         self.list_sizes = list_sizes
@@ -44,18 +36,24 @@ class GenGraph:
         # self.figaxes.axis('equal')
         if self.fig_init_flg: self.canvas.draw()
         self.fig_init_flg = True
+    
+    def CloseFigure(self):
+        pyplot.close("all")
+        self.main_win.destroy()
 
 
 if __name__ == "__main__":
     stest = r"D:\Downloads"
     stest2 = r"C:\Users\krissay\Documents"
+    stest3 = os.path.join(os.environ['USERPROFILE'], "Desktop")
     
     root = tkinter.Tk()
 
-    RootFolder = FilesData(stest)
-    list_files, list_sizes, list_urls = RootFolder.FolderContents(stest, True, True)
+    RootFolder = FilesData(stest3)
+    list_files, list_sizes, list_urls = RootFolder.FolderContents(stest3, True, True)
 
     MainFig = GenGraph(root, list_files, list_sizes)
 
+    root.protocol("WM_DELETE_WINDOW", MainFig.CloseFigure)
     root.mainloop()
     
