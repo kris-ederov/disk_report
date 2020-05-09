@@ -1,5 +1,6 @@
 import tkinter, os
 from tkinter import ttk
+from pathlib import Path
 from disk_report_functions import FormatSize, FilesData
 from PIL import Image, ImageTk
 
@@ -37,8 +38,9 @@ class GenTreeview():
         self.tree.heading("#0", text="File Name", anchor=tkinter.W)
         self.tree.heading("size", text="Size", anchor=tkinter.W)
 
-        self.folder_icon = ImageTk.PhotoImage(Image.open("icons\\folder.png"))
-        self.file_icon = ImageTk.PhotoImage(Image.open("icons\\file.png"))
+        icon_folder = Path(os.path.dirname(__file__))
+        self.folder_icon = ImageTk.PhotoImage(Image.open(icon_folder / "icons" / "folder.png"))
+        self.file_icon = ImageTk.PhotoImage(Image.open(icon_folder / "icons" / "file.png"))
         
         self.GenLevel(self.root_path, "")
 
@@ -67,12 +69,12 @@ class GenTreeview():
                 # Set file icon
                 self.tree.item(self.sub_item, image = self.file_icon)
 
-            if index > 20:
-                self.tree.insert(parent_item, "end", "", text = "...")
+            if index > 50:
+                self.tree.insert(parent_item, "end", text = "...")
                 break
 
     def tree_insert(self, parent_item, filename, filesize, open_flg, tags_arg):
-        item = self.tree.insert(parent_item, "end", "", text = filename, values = (filesize,),
+        item = self.tree.insert(parent_item, "end", text = filename, values = (filesize,),
             open = open_flg, image = self.folder_icon, tags = (tags_arg,))
 
         # Bind clicks to item based on tag
@@ -81,7 +83,7 @@ class GenTreeview():
         return item
 
     def item_bind(self, url):
-        if self.graph_object is not "":
+        if self.graph_object != "":
             self.tree.tag_bind(url, sequence = '<ButtonPress-1>',
                 callback = lambda event, arg=url: self.on_1click(event, arg))
 

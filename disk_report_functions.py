@@ -1,4 +1,4 @@
-import os
+import os, pickle
 from pathlib import Path
 
 def FormatSize(file_bytes):
@@ -19,13 +19,30 @@ def FormatSize(file_bytes):
 class FilesData:
     """ Data structure: [file index, file url, size, list with file indices contained in folder] """
     def __init__(self, path_main):
+        self.init(path_main)
+
+    def init(self, path_main):
         self.path_main = Path(path_main)
         self.list_files = []
         self.files_count = 0
 
-        self.list_files.append([self.files_count, self.path_main, -1, []])
-        self.files_count += 1
-        self.list_files[0][2], self.list_files[0][3] = self.ScanFolder(self.path_main)
+        if os.path.isdir(self.path_main):
+            self.list_files.append([self.files_count, self.path_main, -1, []])
+            self.files_count += 1
+            self.list_files[0][2], self.list_files[0][3] = self.ScanFolder(self.path_main)
+        else:
+            self.OpenScan(path_main)
+            self.files_count = len(self.list_files)
+
+    def SaveTo(self, save_path):
+        outfile = open(save_path, "wb")
+        pickle.dump(self.list_files, outfile)
+        outfile.close()
+
+    def OpenScan(self, open_path):
+        infile = open(open_path, "rb")
+        self.list_files = pickle.load(infile)
+        infile.close()
 
     def ScanFolder(self, cur_path):
         cur_path = Path(cur_path)
@@ -72,9 +89,9 @@ class FilesData:
         for item in self.list_files: print(item)
 
     def FolderContents(self, path_folder, limit_list_flag, limit_filename_flg):
+        """ Returns lists file names, sizes and url contained path_folder """
         if not path_folder: path_folder = self.MainFolderPath()
         path_folder = Path(path_folder)
-        # Returns 2 lists: All folder contents and sizes
         for item in self.list_files:
             if path_folder == item[1]:
                 index_path_folder = item[0]
@@ -124,9 +141,13 @@ if __name__ == "__main__":
     stest3 = r"E:\Google Drive"
     stest4 = "C:\\"
 
-    RootFolder = FilesData(stest4)
+    # RootFolder = FilesData(stest)
+    RootFolder = FilesData(r"C:\Users\krissay\Desktop\saved_scan.txt")
+
     list_filenames, list_sizes, list_urls = RootFolder.FolderContents("", False, False)
 
     for index, item in enumerate(list_filenames):
-        print(item + " - " + FormatSize(list_sizes[index]))
-        print(list_urls[index])
+        print(item + " - " + FormatSize(list_sizes[index]) + " - " + list_urls[index])
+
+    # RootFolder.SaveTo(r"C:\Users\krissay\Desktop\saved_scan.txt")
+    
